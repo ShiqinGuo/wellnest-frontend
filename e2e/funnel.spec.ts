@@ -1,5 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { next, choose, profileIntro, profileAfterActivity } from "./helpers";
+import {
+  next,
+  choose,
+  profileIntro,
+  profileAfterActivity,
+  paymentExpectation,
+} from "./helpers";
 test("图卡引导、反馈页恢复、无键盘填表完成和模拟支付", async ({
   page,
 }, info) => {
@@ -74,7 +80,7 @@ test("图卡引导、反馈页恢复、无键盘填表完成和模拟支付", as
     .click();
   await expect(
     page.getByRole("heading", { name: "你的完整评估", exact: true }),
-  ).toBeVisible();
+  ).toBeVisible(paymentExpectation);
   await page.reload();
   await expect(page.getByText("每日摄入参考", { exact: true })).toBeVisible();
   await expect(page.getByText("1689", { exact: false })).toBeVisible();

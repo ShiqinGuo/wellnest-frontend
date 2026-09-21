@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { paymentExpectation } from "./helpers";
 
 const answers = {
   sex: "female",
@@ -66,6 +67,7 @@ test("支付失败后换新操作键，重新支付仍经服务端开通", async
     .click();
   await expect(page.getByRole("dialog").getByRole("alert")).toContainText(
     "这次支付未完成",
+    paymentExpectation,
   );
   expect(
     (
@@ -80,7 +82,7 @@ test("支付失败后换新操作键，重新支付仍经服务端开通", async
     .click();
   await expect(
     page.getByRole("heading", { name: "你的完整评估", exact: true }),
-  ).toBeVisible();
+  ).toBeVisible(paymentExpectation);
   expect(keys).toHaveLength(2);
   expect(keys[1]).not.toBe(keys[0]);
 });

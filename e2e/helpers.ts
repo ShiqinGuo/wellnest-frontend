@@ -1,4 +1,9 @@
 import { expect, type Page } from "@playwright/test";
+// Live payment traverses queue creation, provider confirmation, webhook and result reload.
+// Keep normal UI assertions fast; give only this asynchronous boundary its own budget.
+export const paymentExpectation = {
+  timeout: process.env.E2E_BASE_URL ? 45_000 : 15_000,
+};
 export async function next(page: Page) {
   await page.getByRole("button", { name: "继续", exact: true }).click();
 }

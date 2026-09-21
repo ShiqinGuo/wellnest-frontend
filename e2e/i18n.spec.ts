@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { paymentExpectation } from "./helpers";
 import { readFileSync, readdirSync } from "node:fs";
 import ts from "typescript";
 import { renderPlanMessage, renderResultCode } from "../src/planPresentation";
@@ -174,7 +175,7 @@ test("英文完整测评、切换保留进度、动态建议与支付结果均�
     .click();
   await expect(
     page.getByRole("heading", { name: "Your full assessment" }),
-  ).toBeVisible();
+  ).toBeVisible(paymentExpectation);
   await page
     .getByText("Explore all your starting steps", { exact: true })
     .click();
