@@ -1,0 +1,1 @@
+Split from the local Wellnest frontend. Existing desktop assessment, bilingual presentation and assets were preserved. Payment integration now uses the asynchronous backend API. Image sources and licenses are recorded in docs/images.md.

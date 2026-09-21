@@ -1,0 +1,45 @@
+# Wellnest Frontend
+
+独立的 React + TypeScript + Vite 前端。后端：`wellnest-backend`。支持中文/英文、分步测评、恢复进度、生活画像、预测看板和异步模拟支付。
+
+## 开发与构建
+
+```bash
+npm ci
+npm run dev
+npm run build
+```
+
+开发地址 `http://127.0.0.1:5174`，`/api` 默认代理到 `http://127.0.0.1:18090`。先启动后端的 Compose 支付环境。可用 API_PROXY_TARGET 改开发代理；生产推荐同源反代 `/api`，也可配置 VITE_API_ORIGIN 并在后端设置准确的 WELLNEST_ORIGIN。
+
+仅前端构建和翻译契约检查不需要 Python、数据库或后端仓库。
+
+## 支付
+
+原 `/pay` 已删除。前端创建 `/api/payments` 后等待渠道收银台就绪，用户的“模拟支付并解锁”操作确认 Mock 付款，再等待服务端确认成功，最后刷新结果。界面不会根据渠道收银台返回直接认定会员已开通。
+
+暂时超时保留错误和重试入口；创建请求保留幂等键。已有 pending 支付可以继续，重放返回创建快照后通过 GET 获取最新状态。正式支付渠道接入时替换模拟收银台确认动作即可。
+
+## 契约管理
+
+`src/generated` 是后端版本化导出物，提交在本仓库内，不手工修改。
+
+```bash
+# 指定后端 contracts 目录；或使用指向固定 commit 的 HTTPS 目录 URL
+npm run contract:sync -- ../wellnest-backend/contracts
+npm run contract:check
+```
+
+同步脚本验证 manifest 中每份导出物的 SHA256 后才写入。包括 DTO、OpenAPI 和翻译规则样本；npm build 只校验已固定的快照，不联网取最新版本。
+
+## 测试
+
+```bash
+npm test
+```
+
+浏览器测试需要启动后端支付环境和前端 dev server。默认桌面；可用 E2E_BASE_URL 指定其他环境。覆盖完整问卷、中英文切换、恢复进度、支付请求响应丢失后的重试，以及免费/会员看板。所有与服务端规则相关的翻译测试读取导出的样本，不执行 Python。
+
+生产静态产物在 `dist/`；仓库拆分不自动替换原来的 Cloudflare 线上站点。
+
+CI 的 Frontend quality 独立执行构建和翻译契约检查，不需要后端。Browser integration 接受已部署的前端测试 URL，按需执行完整桌面流程。
