@@ -54,6 +54,7 @@ function App() {
     submit,
     pay,
     paidAssessmentId,
+    confirmingPaymentId,
     retryPaidResult,
     restart,
     q,
@@ -402,8 +403,14 @@ function App() {
             onRetry={retryGuidance}
           />
         )}
-        {paidAssessmentId && busy && (
-          <p role="status">{t("支付已成功，正在更新评估…")}</p>
+        {paidAssessmentId && (
+          <p role="status" className="payment-feedback">
+            {t(
+              confirmingPaymentId
+                ? "付款已确认，正在开通完整评估，无需再次支付。"
+                : "支付已成功，正在更新评估…",
+            )}
+          </p>
         )}
         {t(
           error && (

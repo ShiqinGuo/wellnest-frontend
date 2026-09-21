@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-for (const recovery of ["automatic", "manual"] as const) {
+for (const recovery of ["automatic", "manual", "activation"] as const) {
   test(`confirmed payment closes dialog and refreshes result: ${recovery}`, async ({
     page,
   }) => {
@@ -50,7 +50,8 @@ for (const recovery of ["automatic", "manual"] as const) {
       resultReads = 0,
       paymentCreates = 0,
       sessionReads = 0;
-    let allowResult = recovery === "automatic";
+    let allowResult = recovery !== "manual";
+    let allowEntitlement = recovery !== "activation";
     await page.route("**/api/**", async (route) => {
       const path = new URL(route.request().url()).pathname;
       const json = (body: unknown, status = 200) =>
@@ -68,8 +69,18 @@ for (const recovery of ["automatic", "manual"] as const) {
         return json({ id: "payment-1", status: "pending" });
       }
       if (path === "/api/payments/payment-1") {
+        if (recovery === "activation" && !allowEntitlement)
+          return json({
+            id: "payment-1",
+            status: "pending",
+            checkoutUrl: "/api/mock-checkout/test-token",
+          });
         confirmed = true;
         return json({ id: "payment-1", status: "succeeded" });
+      }
+      if (path === "/api/mock-checkout/test-token/confirm") {
+        confirmed = true;
+        return json({ status: "succeeded" });
       }
       if (path === `/api/assessments/${id}/result`) {
         if (!confirmed)
@@ -110,6 +121,13 @@ for (const recovery of ["automatic", "manual"] as const) {
       .getByRole("button", { name: "模拟支付并解锁", exact: true })
       .click();
     await expect(page.getByRole("dialog")).toHaveCount(0);
+    if (recovery === "activation") {
+      await expect(page.getByRole("status")).toContainText("付款已确认");
+      expect(resultReads).toBe(0);
+      await expect(page.locator(".chart")).toHaveCount(0);
+      await expect(page.locator(".calorie-number")).toHaveCount(0);
+      allowEntitlement = true;
+    }
     if (recovery === "manual") {
       const retry = page.getByRole("button", {
         name: "重新加载已解锁评估",

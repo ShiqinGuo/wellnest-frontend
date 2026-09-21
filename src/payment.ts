@@ -35,7 +35,7 @@ export async function loadPaidResult(
   );
 }
 
-async function waitForPayment(
+export async function waitForPayment(
   id: string,
   checkout: boolean,
 ): Promise<PaymentView> {
@@ -51,7 +51,10 @@ async function waitForPayment(
   throw new ApiError("PAYMENT_PENDING", "PAYMENT_PENDING");
 }
 
-export async function completeDemoPayment(key: string): Promise<void> {
+export async function completeDemoPayment(
+  key: string,
+  onConfirmed: (paymentId: string) => void = () => {},
+): Promise<void> {
   const payment = await api<PaymentView>(
     "/api/payments",
     "POST",
@@ -59,11 +62,21 @@ export async function completeDemoPayment(key: string): Promise<void> {
     key,
   );
   const ready = await waitForPayment(payment.id, true);
-  if (ready.status === "succeeded") return;
+  if (ready.status === "succeeded") {
+    onConfirmed(payment.id);
+    return;
+  }
   const checkout = new URL(ready.checkoutUrl!, window.location.origin);
   // Only the demo provider is supported. Never send a session to arbitrary checkout URLs.
   if (!/^\/api\/mock-checkout\/[A-Za-z0-9_-]+$/.test(checkout.pathname))
     throw new ApiError("PAYMENT_FAILED", "PAYMENT_FAILED");
-  await api(`${checkout.pathname}/confirm`, "POST", { outcome: "succeeded" });
+  const confirmation = await api<{ status: string }>(
+    `${checkout.pathname}/confirm`,
+    "POST",
+    { outcome: "succeeded" },
+  );
+  if (confirmation.status !== "succeeded")
+    throw new ApiError("PAYMENT_FAILED", "PAYMENT_FAILED");
+  onConfirmed(payment.id);
   await waitForPayment(payment.id, false);
 }

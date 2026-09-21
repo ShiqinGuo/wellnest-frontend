@@ -1,5 +1,7 @@
 // Chinese source messages are stable catalog IDs. Domain enum values remain untranslated.
 export const en: Record<string, string> = {
+  "付款已确认，正在开通完整评估，无需再次支付。":
+    "Payment confirmed. Activating your full assessment; no further payment is needed.",
   "支付已成功，正在更新评估…": "Payment confirmed. Updating your assessment…",
   重新加载已解锁评估: "Reload unlocked assessment",
   "支付已成功，评估暂未更新，请重试加载，无需再次支付。":

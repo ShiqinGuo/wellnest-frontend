@@ -1,4 +1,4 @@
-import { completeDemoPayment, loadPaidResult } from "./payment";
+import { completeDemoPayment, loadPaidResult, waitForPayment } from "./payment";
 import { selectedValues } from "./profile";
 import { errorMessages } from "./locales/errors";
 import { useEffect, useLayoutEffect, useState } from "react";
@@ -36,6 +36,9 @@ export function useAssessmentFlow() {
   const [editing, setEditing] = useState(false);
   const [computing, setComputing] = useState(false);
   const [paidAssessmentId, setPaidAssessmentId] = useState<string | null>(null);
+  const [confirmingPaymentId, setConfirmingPaymentId] = useState<string | null>(
+    null,
+  );
   const steps = visibleSteps(assessment?.answers, assessment?.flowVersion);
   const questions = getQuestions(assessment?.answers);
   const [ready, setReady] = useState(false);
@@ -215,7 +218,15 @@ export function useAssessmentFlow() {
     await execute(async () => {
       const body = { planId: "wellnest-demo" };
       try {
-        await completeDemoPayment(operation("/api/payments", body));
+        await completeDemoPayment(
+          operation("/api/payments", body),
+          (paymentId) => {
+            setConfirmingPaymentId(paymentId);
+            setPaidAssessmentId(assessmentId);
+            setPaywall(false);
+            setPending(null);
+          },
+        );
       } catch (error) {
         if (error instanceof ApiError && error.code === "PAYMENT_FAILED")
           setPending(null);
@@ -225,6 +236,7 @@ export function useAssessmentFlow() {
       // The payment is final even if the subsequent result read fails.
       // Refresh the purchased assessment, not whichever draft is now current.
       setPaidAssessmentId(assessmentId);
+      setConfirmingPaymentId(null);
       setPaywall(false);
       setPending(null);
       setResult(await loadPaidResult(assessmentId));
@@ -235,6 +247,10 @@ export function useAssessmentFlow() {
   async function retryPaidResult() {
     if (!paidAssessmentId) return;
     await execute(async () => {
+      if (confirmingPaymentId) {
+        await waitForPayment(confirmingPaymentId, false);
+        setConfirmingPaymentId(null);
+      }
       setResult(await loadPaidResult(paidAssessmentId));
       setStep("result");
       setPaidAssessmentId(null);
@@ -256,6 +272,7 @@ export function useAssessmentFlow() {
       setResult(null);
       setPaidAssessmentId(null);
       setEditing(false);
+      setConfirmingPaymentId(null);
       setConflict(false);
       setStep(a.resumeStepId);
       setPending(null);
@@ -306,6 +323,7 @@ export function useAssessmentFlow() {
     submit,
     pay,
     paidAssessmentId,
+    confirmingPaymentId,
     retryPaidResult,
     restart,
     q,
