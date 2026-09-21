@@ -11,5 +11,8 @@
     "run_worker_first": ["/api/*", "/pay", "/health", "/ready", "/docs", "/openapi.json"]
   },
   "services": [{ "binding": "BACKEND", "service": "wellnest-backend" }],
-  "observability": { "enabled": true }
+  "observability": {
+    "enabled": true,
+    "traces": { "enabled": true, "head_sampling_rate": 1, "persist": true }
+  }
 }
