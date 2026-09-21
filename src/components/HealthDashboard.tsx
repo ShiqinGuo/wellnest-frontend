@@ -417,7 +417,7 @@ export function HealthDashboard({
             <h3>{t("让下一步更清晰")}</h3>
             <p>{t("每日热量建议 · 目标预测日期 · 体重变化曲线")}</p>
           </div>
-          <button className="primary" onClick={onUnlock}>
+          <button className="primary" disabled={busy} onClick={onUnlock}>
             {t("查看我的完整评估")}
             <ArrowRight size={17} />
           </button>

@@ -13,3 +13,12 @@ jobs:
       - run: npm run build
       - run: npm run deploy:check
       - run: npm run test:contract
+      - run: npx playwright install --with-deps chromium
+      - name: Payment result recovery regressions
+        run: |
+          npm run dev > vite.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:5174/ > /dev/null; then break; fi
+            sleep 1
+          done
+          npx playwright test --project=desktop e2e/payment-refresh.spec.ts

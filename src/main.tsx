@@ -53,6 +53,8 @@ function App() {
     advance,
     submit,
     pay,
+    paidAssessmentId,
+    retryPaidResult,
     restart,
     q,
     index,
@@ -393,16 +395,25 @@ function App() {
             result={result}
             answers={assessment.answers}
             busy={busy}
-            onUnlock={() => setPaywall(true)}
+            onUnlock={() =>
+              paidAssessmentId ? retryPaidResult() : setPaywall(true)
+            }
             onRestart={() => restart()}
             onRetry={retryGuidance}
           />
+        )}
+        {paidAssessmentId && busy && (
+          <p role="status">{t("支付已成功，正在更新评估…")}</p>
         )}
         {t(
           error && (
             <div className="error" role="alert">
               {t(error)}
-              {conflict ? (
+              {paidAssessmentId ? (
+                <button disabled={busy} onClick={retryPaidResult}>
+                  {t("重新加载已解锁评估")}
+                </button>
+              ) : conflict ? (
                 <button onClick={() => execute(restore)}>
                   {t("载入最新进度")}
                 </button>

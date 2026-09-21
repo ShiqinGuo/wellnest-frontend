@@ -1,7 +1,39 @@
 import { api, ApiError } from "./api";
-import type { PaymentView } from "./generated/contract";
+import type {
+  PaymentView,
+  FreeResult,
+  MemberResult,
+} from "./generated/contract";
 
 const polling = { intervalMs: 1000, deadlineMs: 90_000 } as const;
+const resultRefresh = { attempts: 3, intervalMs: 1000 } as const;
+
+export async function loadPaidResult(
+  assessmentId: string,
+): Promise<MemberResult> {
+  for (let attempt = 0; attempt < resultRefresh.attempts; attempt++) {
+    try {
+      const result = await api<FreeResult | MemberResult>(
+        `/api/assessments/${assessmentId}/result`,
+      );
+      if (result.access === "member") return result;
+    } catch (error) {
+      if (
+        !(error instanceof ApiError) ||
+        !["NETWORK", "SERVICE_UNAVAILABLE"].includes(error.code)
+      )
+        throw error;
+    }
+    if (attempt + 1 < resultRefresh.attempts)
+      await new Promise((resolve) =>
+        setTimeout(resolve, resultRefresh.intervalMs),
+      );
+  }
+  throw new ApiError(
+    "PAYMENT_RESULT_PENDING",
+    "支付已成功，评估暂未更新，请重试加载，无需再次支付。",
+  );
+}
 
 async function waitForPayment(
   id: string,

@@ -1,5 +1,10 @@
 // Chinese source messages are stable catalog IDs. Domain enum values remain untranslated.
 export const en: Record<string, string> = {
+  "支付已成功，正在更新评估…": "Payment confirmed. Updating your assessment…",
+  重新加载已解锁评估: "Reload unlocked assessment",
+  "支付已成功，评估暂未更新，请重试加载，无需再次支付。":
+    "Payment confirmed. Please reload your assessment; there is no need to pay again.",
+
   "连接中断，请重试刚才的操作。":
     "Connection interrupted. Please try that step again.",
   "服务暂时繁忙，刚才的操作可能尚未完成。请重试，我们会避免重复处理。":

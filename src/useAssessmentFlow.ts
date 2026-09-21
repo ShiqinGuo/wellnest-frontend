@@ -1,4 +1,4 @@
-import { completeDemoPayment } from "./payment";
+import { completeDemoPayment, loadPaidResult } from "./payment";
 import { selectedValues } from "./profile";
 import { errorMessages } from "./locales/errors";
 import { useEffect, useLayoutEffect, useState } from "react";
@@ -35,6 +35,7 @@ export function useAssessmentFlow() {
   } | null>(null);
   const [editing, setEditing] = useState(false);
   const [computing, setComputing] = useState(false);
+  const [paidAssessmentId, setPaidAssessmentId] = useState<string | null>(null);
   const steps = visibleSteps(assessment?.answers, assessment?.flowVersion);
   const questions = getQuestions(assessment?.answers);
   const [ready, setReady] = useState(false);
@@ -209,6 +210,8 @@ export function useAssessmentFlow() {
     }
   }
   async function pay() {
+    if (!assessment) return;
+    const assessmentId = assessment.id;
     await execute(async () => {
       const body = { planId: "wellnest-demo" };
       try {
@@ -219,8 +222,22 @@ export function useAssessmentFlow() {
         if (!(error instanceof ApiError && error.code === "ALREADY_SUBSCRIBED"))
           throw error;
       }
-      await restore();
+      // The payment is final even if the subsequent result read fails.
+      // Refresh the purchased assessment, not whichever draft is now current.
+      setPaidAssessmentId(assessmentId);
       setPaywall(false);
+      setPending(null);
+      setResult(await loadPaidResult(assessmentId));
+      setStep("result");
+      setPaidAssessmentId(null);
+    });
+  }
+  async function retryPaidResult() {
+    if (!paidAssessmentId) return;
+    await execute(async () => {
+      setResult(await loadPaidResult(paidAssessmentId));
+      setStep("result");
+      setPaidAssessmentId(null);
     });
   }
   async function restart(fresh = false) {
@@ -237,6 +254,7 @@ export function useAssessmentFlow() {
       );
       setAssessment(a);
       setResult(null);
+      setPaidAssessmentId(null);
       setEditing(false);
       setConflict(false);
       setStep(a.resumeStepId);
@@ -287,6 +305,8 @@ export function useAssessmentFlow() {
     advance,
     submit,
     pay,
+    paidAssessmentId,
+    retryPaidResult,
     restart,
     q,
     index,
