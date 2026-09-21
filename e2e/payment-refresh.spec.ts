@@ -43,7 +43,7 @@ for (const recovery of ["automatic", "manual"] as const) {
       assessmentId: id,
       bmi: 27.5,
       bmiCategory: "overweight",
-      summary: "assessment_ready",
+      summary: "personal_start",
       planPreview: null,
     };
     let confirmed = false,
@@ -89,7 +89,7 @@ for (const recovery of ["automatic", "manual"] as const) {
             weeklyChangeKg: -0.3,
             calculatedOn: "2026-09-21",
             predictedGoalDate: "2027-05-21",
-            algorithmVersion: "health-v2",
+            algorithmVersion: "wellness-v2",
             projection: [
               { date: "2026-09-21", weightKg: 75 },
               { date: "2027-05-21", weightKg: 65 },
