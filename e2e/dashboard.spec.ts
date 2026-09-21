@@ -152,7 +152,8 @@ test("生活看板显示真实回答、切换维度与预测节点，付费前�
     .click();
   await expect(
     page.getByRole("heading", { name: "你的完整评估", exact: true }),
-  ).toBeVisible();
+  ).toBeVisible(paymentExpectation);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   const calculation = (
     await (await page.request.get(`/api/assessments/${a.id}/result`)).json()
   ).calculation;
