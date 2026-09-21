@@ -10,7 +10,13 @@ npm run dev
 npm run build
 ```
 
-开发地址 `http://127.0.0.1:5174`，`/api` 默认代理到 `http://127.0.0.1:18090`。先启动后端的 Compose 支付环境。可用 API_PROXY_TARGET 改开发代理；生产推荐同源反代 `/api`，也可配置 VITE_API_ORIGIN 并在后端设置准确的 WELLNEST_ORIGIN。
+开发地址 `http://127.0.0.1:5174`，`/api` 默认代理到 `http://127.0.0.1:18090`。先按后端 README 启动 PostgreSQL 和 Python Worker。可用 API_PROXY_TARGET 改开发代理。
+
+## Cloudflare 部署
+
+`wrangler.jsonc` 保留原 `wellnest-assessment` 名称与 URL。静态资源直接托管；API、健康检查和文档路径通过 `BACKEND` 服务绑定转发到独立后端 `wellnest-backend`。转发保留 Cookie、请求正文及响应流，前端不存储数据库或支付密钥。
+
+先验证后端已部署，再执行 `npm run deploy`。本地构建检查使用 `npm run deploy:check`；不会发布。后端支付契约未因队列替换而改变。
 
 仅前端构建和翻译契约检查不需要 Python、数据库或后端仓库。
 
